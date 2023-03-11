@@ -7,22 +7,21 @@ class Node{
 }
 
 class Tree{
-    constructor(array){
-        this.array = [... new Set(array.sort((a,b) => a - b))];
-        this.root = this.buildTree(array);
+    constructor(arr){
+        this.array = [...new Set(arr.sort((a, b) => a - b))];
+        this.root = this.buildTree(this.array);
     }
 
-    buildTree(array){
+    buildTree(array = this.array){
         if(array.length == 0){
             return null;
         };
 
-        var mid = Math.ceil(array.length/ 2);
-        var node = new Node(array[mid - 1]);
-
-        node.left = this.buildTree(array.slice(0,mid - 1))
-        node.right = this.buildTree(array.slice(mid))
-        return node
+        var mid = Math.floor(array.length/ 2);
+        var node = new Node(array[mid]);
+        node.left = this.buildTree(array.slice(0,mid))
+        node.right = this.buildTree(array.slice(mid + 1))
+        return node;
     }
 
     insert(value){
@@ -39,7 +38,9 @@ class Tree{
             root.right = this.insertHelper(value, root.right)
         } else if (value < root.value) {
             root.left = this.insertHelper(value, root.left)
-        } 
+        } else {
+            return;
+        }
 
         return root;
     }
@@ -138,11 +139,47 @@ class Tree{
         return arr;
     }
 
-    height(node, count=0){
-        var max = 0;
+    height(node){
+        if (!node){
+            return 0;
+        }
+       
+        return Math.max((this.height(node.right) + 1),(this.height(node.left) + 1))
+    }
 
+    depth(node){
+        var root = this.root;
         var count = 0;
+        while(root){
+            if(node > root.value){
+                root = root.right;
+            } else if (node < root.value){
+                root = root.left;
+            } else {
+                return count;
+            }
 
+            count +=1
+        }
+
+        return null;
+    }
+
+    isBalanced(root = this.root){
+        var leftHeight = this.height(root.left);
+        var rightHeight = this.height(root.right);
+        if (Math.abs(leftHeight - rightHeight) > 1){
+            return false;
+        }
+
+        return true;
+    }
+
+    rebalance(){
+        var arr = this.inorder([],this.root);
+
+        arr = [... new Set(arr.sort((a,b) => a - b))];
+        this.root = this.buildTree(arr);
     }
     
 }
@@ -157,17 +194,27 @@ const prettyPrint = (node, prefix = '', isLeft = true) => {
     }
 }
 
-var tree = new Tree([5,4,6,8,97,3,85])
-tree.insert(1)
-tree.insert(2)
-tree.insert(4)
-tree.insert(5)
-tree.insert(3)
-tree.insert(6)
-tree.insert(1)
-tree.insert(1)
-tree.insert(1)
-tree.delete(5);
-console.log(tree.postorder())
+function randomArray(){
+    return Array.from({length: Math.random() * 20}, () => Math.floor(Math.random() *100));
+}
 
-prettyPrint(tree.root)
+var newArr = randomArray();
+var tree = new Tree(newArr);
+prettyPrint(tree.root);
+console.log(tree.isBalanced());
+console.log(tree.levelOrder());
+console.log(tree.inorder());
+console.log(tree.preorder());
+console.log(tree.postorder());
+tree.insert(234)
+tree.insert(352)
+tree.insert(231)
+tree.insert(341)
+console.log(tree.isBalanced())
+tree.rebalance()
+console.log(tree.isBalanced())
+console.log(tree.levelOrder());
+console.log(tree.inorder());
+console.log(tree.preorder());
+console.log(tree.postorder());
+prettyPrint(tree.root);
