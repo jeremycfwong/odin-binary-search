@@ -13,102 +13,161 @@ class Tree{
     }
 
     buildTree(array){
-        if (array.length == 0) return null;
-    
-
-        let mid = Math.floor(array.length / 2);
-
-        let treeNode = new Node(array[mid]);;
-        treeNode.left = this.buildTree(array.slice(0,mid));
-        treeNode.right = this.buildTree(array.slice(mid + 1));
-
-        return treeNode;
-    }
-
-    prettyPrint(node = this.root, prefix = "", isLeft = true) {
-        if (node.right) {
-          this.prettyPrint(node.right, `${prefix}${isLeft ? '|   ' : '    '}`, false)
-        }
-        console.log(`${prefix}${isLeft ? '└── ' : '┌── '}${node.value}`);
-        if (node.left) {
-          this.prettyPrint(node.left, `${prefix}${isLeft ? '    ' : '|   '}`, true)
-        }
-      }
-
-    insert(value){
-        var newNode = new Node(value)
-        var root = this.root;
-
-
-        this.root = this.insertHelper(root, newNode);
-    }
-
-    insertHelper(root, node){
-        if (root == null){
-            return node;
+        if(array.length == 0){
+            return null;
         };
 
-        if (root.value == node.value){
+        var mid = Math.ceil(array.length/ 2);
+        var node = new Node(array[mid - 1]);
+
+        node.left = this.buildTree(array.slice(0,mid - 1))
+        node.right = this.buildTree(array.slice(mid))
+        return node
+    }
+
+    insert(value){
+        this.root = this.insertHelper(value, this.root)
+    }
+
+    insertHelper(value, root){
+        if(!root){
+            let node = new Node(value);
+            return node;
+        }
+
+        if(value > root.value){
+            root.right = this.insertHelper(value, root.right)
+        } else if (value < root.value) {
+            root.left = this.insertHelper(value, root.left)
+        } 
+
+        return root;
+    }
+
+    delete(value, root = this.root){
+        if(!root){
             return root;
-        } else if (root.value > node.value){
-            root.left = this.insertHelper(root.left, node);
-        } else if (root.value < node.value){
-            root.right = this.insertHelper(root.right, node);
         }
 
-        return root;
-    }
-
-    delete(value){
-        let root = this.root;
-
-        this.root = this.deleteHelper(root, value)
-            // 1 child
-            // no child
-            // multi child
-    }
-    
-
-    deleteHelper(root, target){
-        if (root == null) return root;
-
-        if (root.value > target){
-            root.left = this.deleteHelper(root.left, target);
-        } else if (root.value < target){
-            root.right = this.deleteHelper(root.right, target);
-        }
-
-        else {
-            if(!root.left){
+        if(value > root.value){
+            root.right = this.delete(value, root.right)
+        } else if (value < root.value) {
+            root.left = this.delete(value, root.left)
+        } else {
+            if (root.left == null)
                 return root.right;
-            } else if (!root.right){
+            else if (root.right == null)
                 return root.left;
+            
+            root.value = this.getMin(root.right);
+
+            root.right = this.delete(root.value, root.right);
+        }
+
+        return root;
+    }
+
+    getMin(root){
+        let min = root.value;
+    
+            while (root.left != null){
+                min = root.left.value;
+                root = root.left;
             }
-
-            var newItem = this.minFinder(root.right);
-            root.value = newItem.value;
-            root.right = this.deleteHelper(root.right, root.key);
-        }
-
-        return root;
+        
+        return min;
     }
 
-    minFinder(root){
-        while(root.left){
-            root = root.left;
-        }
+    find(value){
+        var temp = this.root;
 
-        return root;
+        while(temp){
+            if(value > temp.value){
+                temp = temp.right;
+            } else if (value < temp.value){
+                temp = temp.left;
+            } else {
+                return temp;
+            }
+        }
     }
 
+    levelOrder(arr =[], queue=[], root = this.root){
+        if (!root) return;
+        
+        arr.push(root.value);
+
+        queue.push(root.left);
+        queue.push(root.right);
+
+        while(queue.length){
+            const level = queue[0];
+            queue.shift();
+            this.levelOrder(arr, queue, level)
+        }
+        return arr;
+    }
+
+    inorder(arr=[], root = this.root){
+        if(root == null) return;
+
+        this.inorder(arr,root.left)
+        arr.push(root.value)
+        this.inorder(arr, root.right)
+        
+        return arr;
+    }
+
+    preorder(arr=[], root = this.root){
+        if(root == null) return;
+
+        arr.push(root.value)
+        this.preorder(arr, root.left)
+        this.preorder(arr, root.right)
+
+        return arr;
+    }
+
+    postorder(arr=[], root = this.root){
+        if (!root) return;
+        
+        this.postorder(arr, root.left)
+        this.postorder(arr, root.right)
+        arr.push(root.value)
+
+        return arr;
+    }
+
+    height(node, count=0){
+        var max = 0;
+
+        var count = 0;
+
+    }
     
 }
 
-let test = new Tree([3,2,234,23,243,44,21,500])
+const prettyPrint = (node, prefix = '', isLeft = true) => {
+    if (node.right !== null) {
+      prettyPrint(node.right, `${prefix}${isLeft ? '│   ' : '    '}`, false);
+    }
+    console.log(`${prefix}${isLeft ? '└── ' : '┌── '}${node.value}`);
+    if (node.left !== null) {
+      prettyPrint(node.left, `${prefix}${isLeft ? '    ' : '│   '}`, true);
+    }
+}
 
-test.insert(54);
-test.insert(55);
-test.insert(56);
-test.insert(53);
-test.delete(54);
-test.prettyPrint();
+var tree = new Tree([5,4,6,8,97,3,85])
+tree.insert(1)
+tree.insert(2)
+tree.insert(4)
+tree.insert(5)
+tree.insert(3)
+tree.insert(6)
+tree.insert(1)
+tree.insert(1)
+tree.insert(1)
+tree.delete(5);
+console.log(tree.postorder())
+
+prettyPrint(tree.root)
